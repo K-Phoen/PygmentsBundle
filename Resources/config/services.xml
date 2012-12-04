@@ -17,8 +17,16 @@
             <argument type="service" id="varspool_pygments" />
         </service>
 
+        <service id="varspool.cache.fs_cache" class="Varspool\PygmentsBundle\Cache\FilesystemCache">
+            <argument>%kernel.cache_dir%/pygment</argument>
+        </service>
+
         <service id="varspool.twig.pygments_extension" class="Varspool\PygmentsBundle\Twig\PygmentsExtension">
-            <argument type="service" id="varspool_pygments"/>
+            <argument type="service" id="varspool_pygments" />
+
+            <call method="useCache">
+                <argument type="service" id="varspool.cache.fs_cache" />
+            </call>
             <tag name="twig.extension" />
         </service>
     </services>

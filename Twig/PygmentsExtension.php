@@ -2,6 +2,8 @@
 
 namespace Varspool\PygmentsBundle\Twig;
 
+use Varspool\PygmentsBundle\Cache\CacheInterface;
+
 
 /**
  * This class contains the following Twig filters:
@@ -12,11 +14,17 @@ namespace Varspool\PygmentsBundle\Twig;
 class PygmentsExtension extends \Twig_Extension
 {
     protected $pygments_renderer;
+    protected $cache;
 
 
     public function __construct($pygments_renderer)
     {
         $this->pygments_renderer = $pygments_renderer;
+    }
+
+    public function useCache(CacheInterface $cache)
+    {
+        $this->cache = $cache;
     }
 
     public function getFilters()
@@ -28,7 +36,19 @@ class PygmentsExtension extends \Twig_Extension
 
     public function pygmentize($text, $language)
     {
-        return $this->pygments_renderer->blockCode($text, $language);
+        $key = md5($text);
+
+        if ($this->cache !== null && $this->cache->exists($key)) {
+            return $this->cache->get($key);
+        }
+
+        $rendered = $this->pygments_renderer->blockCode($text, $language);
+
+        if ($this->cache !== null) {
+            $this->cache->set($key, $rendered);
+        }
+
+        return $rendered;
     }
 
     public function getName()
